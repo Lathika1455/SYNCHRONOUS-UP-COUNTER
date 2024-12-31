@@ -36,41 +36,75 @@ However, the remaining flip-flops should be made ready to toggle only when all l
 
 **PROGRAM**
 
-module ex11(out,clk,rst);
+module syn_counter (
+    input clk,    // Clock signal
+    input rst,    // Reset signal (active high)
+    output [3:0] q // 4-bit output
+);
 
-input clk,rst;
+    wire [3:0] j, k; // J and K inputs for each JK flip-flop
+    wire [3:0] t;    // Toggle signal for each flip-flop
 
-output reg [3:0]out;
+    // Generate the toggle signals for each stage
+    assign j[0] = 1'b1; // First flip-flop toggles on every clock pulse
+    assign k[0] = 1'b1;
+    assign t[0] = q[0]; // Output of the first flip-flop
 
-always @ (posedge clk)
+    assign j[1] = q[0]; // Second flip-flop toggles on q[0] high
+    assign k[1] = q[0];
+    assign t[1] = q[1];
 
-begin
+    assign j[2] = q[0] & q[1]; // Third flip-flop toggles on q[1:0] high
+    assign k[2] = q[0] & q[1];
+    assign t[2] = q[2];
 
-   if(rst)
-   
-   out<=0;
-     
-   else 
-   
-  out <= out+1;
-     
-end
+    assign j[3] = q[0] & q[1] & q[2]; // Fourth flip-flop toggles on q[2:0] high
+    assign k[3] = q[0] & q[1] & q[2];
+    assign t[3] = q[3];
 
+    // Instantiate 4 JK flip-flops
+    jk_flipflop jk0 (.clk(clk), .rst(rst), .j(j[0]), .k(k[0]), .q(q[0]));
+    jk_flipflop jk1 (.clk(clk), .rst(rst), .j(j[1]), .k(k[1]), .q(q[1]));
+    jk_flipflop jk2 (.clk(clk), .rst(rst), .j(j[2]), .k(k[2]), .q(q[2]));
+    jk_flipflop jk3 (.clk(clk), .rst(rst), .j(j[3]), .k(k[3]), .q(q[3]));
+
+endmodule
+
+module jk_flipflop (
+    input clk,    // Clock signal
+    input rst,    // Reset signal (active high)
+    input j,      // J input
+    input k,      // K input
+    output reg q  // Q output
+);
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            q <= 1'b0; // Reset output to 0
+        end else begin
+            case ({j, k})
+                2'b00: q <= q;       // No change
+                2'b01: q <= 1'b0;    // Reset
+                2'b10: q <= 1'b1;    // Set
+                2'b11: q <= ~q;      // Toggle
+            endcase
+        end
+    end
 endmodule
 
 Developed by:Lathika Sree R RegisterNumber:24009760
 
 **RTL LOGIC UP COUNTER**
 
-![ex11 logic](https://github.com/user-attachments/assets/83207c5b-214e-41d5-a2e8-f4288a980b50)
+![11lc](https://github.com/user-attachments/assets/08c504d3-4a2c-4dad-b50e-f9306c52258d)
+
 
 **TIMING DIAGRAM FOR IP COUNTER**
 
-![ex11 timing](https://github.com/user-attachments/assets/ad24d150-c0c5-4520-b2e4-0c06ac6dd16f)
+![11td](https://github.com/user-attachments/assets/80bcf28e-ffef-4b98-b017-26f8936d939d)
 
 **TRUTH TABLE**
 
-![ex11 truth table](https://github.com/user-attachments/assets/2d7312b1-eee5-4b9d-b4fa-faa8aefcdf56)
+![11tt](https://github.com/user-attachments/assets/a9e185ea-33c2-4ac1-9bb0-a17c13f4fd95)
 
 **RESULTS**
 
